@@ -323,6 +323,7 @@
       ],
       wordCount: 9,
       wordScore: 10,
+      wordWrongPenalty: 5,
       wordCardWidth: 150,
       wordCardHeight: 70,
       wordSlowSpeed: 60,
@@ -471,6 +472,7 @@
       const wordGameSeconds = Number(config.wordGameSeconds);
       const wordCount = Number(config.wordCount);
       const wordScore = Number(config.wordScore);
+      const wordWrongPenalty = Number(config.wordWrongPenalty);
       const wordCardWidth = Number(config.wordCardWidth);
       const wordCardHeight = Number(config.wordCardHeight);
       const wordSlowSpeed = Number(config.wordSlowSpeed);
@@ -544,6 +546,10 @@
           Number.isFinite(wordScore) && wordScore > 0
             ? Math.round(wordScore)
             : DEFAULT_CONFIG.wordScore,
+        wordWrongPenalty:
+          Number.isFinite(wordWrongPenalty) && wordWrongPenalty >= 0
+            ? Math.round(wordWrongPenalty)
+            : DEFAULT_CONFIG.wordWrongPenalty,
         wordCardWidth:
           Number.isFinite(wordCardWidth) && wordCardWidth >= 70
             ? Math.min(Math.round(wordCardWidth), 320)
@@ -606,8 +612,9 @@
           `카메라: <b>${cameraText}</b><br>` +
           `단어 목록: <b>${appConfig.wordList.join(", ")}</b><br>` +
           `게임 제한시간: <b>${appConfig.wordGameSeconds}초</b>, ` +
-          `단어 카드 수: <b>${appConfig.wordCount}개</b>, ` +
-          `정답 점수: <b>${appConfig.wordScore}점</b>`;
+          `단어 카드 수: <b>${appConfig.wordCount}개</b><br>` +
+          `정답 점수: <b>+${appConfig.wordScore}점</b>, ` +
+          `오답 감점: <b>-${appConfig.wordWrongPenalty}점</b>`;
       } else {
         configInfoEl.innerHTML =
           `현재 모드: <b>${modeText}</b><br>` +
@@ -1156,7 +1163,7 @@
             <strong style="color:#facc15">같은 글자 맞추기</strong>
             <div>제시 단어: <b>${wordGame.targetWord || "-"}</b></div>
             <div>남은 시간: ${remaining}초</div>
-            <div>정답 점수: ${appConfig.wordScore}점</div>
+            <div>정답: +${appConfig.wordScore}점 / 오답: -${appConfig.wordWrongPenalty}점</div>
             ${winnerText ? `<div class="winner">${winnerText}</div>` : ""}
             <div class="small">떠다니는 단어 중 제시 단어와 같은 단어를 손목으로 잡으세요.</div>
           </div>` +
@@ -1520,7 +1527,7 @@
       wordGame.lastUpdate = now;
       moveWordCards(dt);
 
-      let caught = false;
+      let actionDone = false;
 
       for (const track of tracks.values()) {
         if (now - track.lastSeen > 400 || !track.landmarks) continue;
@@ -1534,19 +1541,25 @@
 
         for (const card of wordGame.cards) {
           for (const wrist of wristPoints) {
-            if (isPointInWordCard(wrist.x, wrist.y, card) && card.word === wordGame.targetWord) {
+            if (!isPointInWordCard(wrist.x, wrist.y, card)) continue;
+
+            if (card.word === wordGame.targetWord) {
               addWordScore(track.id, appConfig.wordScore);
               chooseNewWordTarget();
               regenerateWordCards();
-              caught = true;
-              break;
+            } else {
+              subtractWordScore(track.id, appConfig.wordWrongPenalty);
+              respawnWordCard(card);
             }
+
+            actionDone = true;
+            break;
           }
 
-          if (caught) break;
+          if (actionDone) break;
         }
 
-        if (caught) break;
+        if (actionDone) break;
       }
     }
 
@@ -1586,6 +1599,20 @@
         vx: moving.vx,
         vy: moving.vy
       };
+    }
+
+    function respawnWordCard(card) {
+      const newCard = createWordCard();
+
+      card.word = newCard.word;
+      card.x = newCard.x;
+      card.y = newCard.y;
+      card.width = newCard.width;
+      card.height = newCard.height;
+      card.type = newCard.type;
+      card.speed = newCard.speed;
+      card.vx = newCard.vx;
+      card.vy = newCard.vy;
     }
 
     function makeWordMovement() {
@@ -1698,7 +1725,8 @@
       const lines = [
         "WORD MODE",
         `목표: ${wordGame.targetWord || "-"}`,
-        `남은 시간: ${remaining}초`
+        `남은 시간: ${remaining}초`,
+        `정답 +${appConfig.wordScore} / 오답 -${appConfig.wordWrongPenalty}`
       ];
 
       if (scores.length > 0) {
@@ -1749,6 +1777,12 @@
     function addWordScore(trackId, value) {
       const prev = wordGame.scores.get(trackId) || 0;
       wordGame.scores.set(trackId, prev + value);
+    }
+
+    function subtractWordScore(trackId, value) {
+      const prev = wordGame.scores.get(trackId) || 0;
+      const penalty = Math.max(0, Number(value) || 0);
+      wordGame.scores.set(trackId, prev - penalty);
     }
 
     function getWordScore(trackId) {
