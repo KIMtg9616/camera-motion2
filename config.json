@@ -37,7 +37,7 @@
   "coinFastRatio": 0.35,
 
   // 같은 글자 맞추기 게임 제한시간
-  "wordGameSeconds": 30,
+  "wordGameSeconds": 20,
 
   // 같은 글자 맞추기에 사용할 단어 목록
   // 상단 제시 단어는 이 목록 중에서 랜덤으로 선택됩니다.
