@@ -1,0 +1,59 @@
+{
+  // motion: 기존 모션 분석, coin: 코인 게임, word: 같은 글자 맞추기
+  "mode": "word",
+
+  // true: 카메라 좌우반전, false: 기본 방향
+  "mirrorCamera": true,
+
+  // 화면에서 1m가 몇 px인지
+  "meterPixels": 350,
+
+  // motion 모드에서만 표시되는 궤적 유지 시간
+  "trailSeconds": 10,
+
+  // 설정 다시 읽는 간격, 5000ms = 5초
+  "configRefreshMs": 5000,
+
+  // 코인 게임 제한시간
+  "coinGameSeconds": 20,
+
+  // 화면에 동시에 표시되는 코인 개수
+  "coinCount": 8,
+
+  // 코인 크기
+  "coinRadius": 30,
+
+  // 코인 점수 범위, 10 단위 랜덤
+  "coinMinValue": 10,
+  "coinMaxValue": 100,
+
+  // 느린 코인 이동 속도, 단위 px/s
+  "coinSlowSpeed": 80,
+
+  // 빠른 코인 이동 속도, 단위 px/s
+  "coinFastSpeed": 220,
+
+  // 빠른 코인이 나올 비율, 0.35 = 약 35%
+  "coinFastRatio": 0.35,
+
+  // 같은 글자 맞추기 게임 제한시간
+  "wordGameSeconds": 30,
+
+  // 제시 단어
+  "wordTarget": "과학",
+
+  // 화면에 표시될 단어 후보
+  "wordChoices": ["과학", "수학", "운동", "에너지", "원자", "분자", "빛", "힘"],
+
+  // 화면에 동시에 표시되는 단어 개수
+  "wordCount": 8,
+
+  // 정답 단어를 터치했을 때 얻는 점수
+  "wordScore": 10,
+
+  // 단어 카드 가로 크기
+  "wordCardWidth": 150,
+
+  // 단어 카드 세로 크기
+  "wordCardHeight": 70
+}
